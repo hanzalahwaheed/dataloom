@@ -6,7 +6,7 @@ import Toast from "./common/Toast";
 import DtypeBadge from "./common/DtypeBadge";
 import proptypes from "prop-types";
 
-const Table = ({ projectId, data: externalData }) => {
+const Table = ({ projectId, data: externalData, fitContainer = false }) => {
   const { columns: ctxColumns, rows: ctxRows, dtypes, updateData } = useProjectContext();
   const [data, setData] = useState([]);
   const [columns, setColumns] = useState([]);
@@ -25,7 +25,7 @@ const Table = ({ projectId, data: externalData }) => {
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
-    if (ctxColumns.length > 0 && ctxRows.length > 0) {
+    if (ctxColumns.length > 0) {
       setColumns(["S.No.", ...ctxColumns]);
       setData(ctxRows.map((row, index) => [index + 1, ...row]));
     }
@@ -223,21 +223,21 @@ const Table = ({ projectId, data: externalData }) => {
   };
 
   return (
-    <div className="px-8 pt-3" onClick={handleCloseContextMenu}>
+    <div className={`${fitContainer ? "h-full" : "px-8 pt-3"}`} onClick={handleCloseContextMenu}>
       <div
-        className="overflow-x-scroll overflow-y-auto border border-gray-200 rounded-lg shadow-sm"
-        style={{ maxHeight: "calc(100vh - 140px)" }}
+        className="overflow-x-auto overflow-y-auto border-y border-gray-200"
+        style={fitContainer ? { maxHeight: "100%" } : { maxHeight: "calc(100vh - 140px)" }}
       >
-        <table className="min-w-full bg-white">
-          <thead className="sticky top-0 bg-gray-50">
+        <table className="min-w-full bg-white border-collapse">
+          <thead className="sticky top-0 z-10 bg-gray-50 border-b border-gray-200">
             <tr>
               {columns.map((column, columnIndex) => (
                 <th
                   key={columnIndex}
-                  className="py-1.5 px-3 border-b border-gray-200 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  className="h-8 px-4 border-r border-gray-200 last:border-r-0 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap"
                   onContextMenu={(e) => handleRightClick(e, null, columnIndex, "column")}
                 >
-                  <button className="w-full text-left text-gray-500 hover:text-gray-700 hover:bg-gray-100 py-0.5 px-1.5 rounded-md transition-colors duration-150">
+                  <button className="w-full text-left text-gray-500 hover:text-gray-700">
                     {column}
                     {column !== "S.No." && <DtypeBadge dtype={dtypes[column]} />}
                   </button>
@@ -250,12 +250,12 @@ const Table = ({ projectId, data: externalData }) => {
             {data.map((row, rowIndex) => (
               <tr
                 key={rowIndex}
-                className="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150"
+                className="border-b border-gray-200 hover:bg-blue-50/30"
               >
                 {row.map((cell, cellIndex) => (
                   <td
                     key={cellIndex}
-                    className="py-1 px-3 text-xs text-gray-700"
+                    className="h-8 px-4 border-r border-gray-200 last:border-r-0 text-xs text-gray-700 whitespace-nowrap"
                     onContextMenu={(e) => handleRightClick(e, rowIndex, null, "row")}
                   >
                     {editingCell &&
@@ -266,14 +266,14 @@ const Table = ({ projectId, data: externalData }) => {
                         value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
                         onBlur={() => handleEditCell(rowIndex, cellIndex, editValue)}
-                        className="w-full p-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                        className="w-full h-6 px-1 border border-blue-400 bg-white text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none"
                         onKeyDown={(e) => handleInputKeyDown(e, rowIndex, cellIndex)}
                       />
                     ) : (
                       <div
                         onClick={() => handleCellClick(rowIndex, cellIndex, cell)}
                         className={
-                          cellIndex !== 0 ? "cursor-pointer hover:bg-gray-50 p-1 rounded" : ""
+                          cellIndex !== 0 ? "cursor-cell min-h-[24px] leading-6" : "min-h-[24px] leading-6 text-gray-400"
                         }
                       >
                         {cell}
@@ -354,6 +354,7 @@ const Table = ({ projectId, data: externalData }) => {
 
 Table.propTypes = {
   projectId: proptypes.string.isRequired,
+  fitContainer: proptypes.bool,
   data: proptypes.shape({
     columns: proptypes.arrayOf(proptypes.string),
     rows: proptypes.arrayOf(

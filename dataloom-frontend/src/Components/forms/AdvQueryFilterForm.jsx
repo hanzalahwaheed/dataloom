@@ -5,7 +5,7 @@ import { transformProject } from "../../api";
 import useError from "../../hooks/useError";
 import FormErrorAlert from "../common/FormErrorAlert";
 
-const AdvQueryFilterForm = ({ projectId, onClose }) => {
+const AdvQueryFilterForm = ({ projectId, onClose, onResult }) => {
   const [query, setQuery] = useState("");
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -22,6 +22,7 @@ const AdvQueryFilterForm = ({ projectId, onClose }) => {
         adv_query: { query },
       });
       setResult(response);
+      onResult?.(response);
       console.log("Query API response:", response);
     } catch (err) {
       console.error("Error applying query:", err.message);
@@ -32,24 +33,24 @@ const AdvQueryFilterForm = ({ projectId, onClose }) => {
   };
 
   return (
-    <div className="p-4 border border-gray-200 rounded-lg bg-white">
+    <div className="p-3 border border-gray-200 rounded-lg bg-white shadow-sm">
       <form onSubmit={handleSubmit}>
-        <h3 className="font-semibold text-gray-900 mb-2">Advanced Query</h3>
+        <h3 className="text-base font-semibold text-gray-900 mb-3">Advanced Query</h3>
         <div className="mb-2">
           <label className="block text-sm font-medium text-gray-700">Query:</label>
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="border border-gray-300 rounded-md w-full px-3 py-2 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+            className="border border-gray-300 rounded-md w-full px-3 py-1.5 text-sm bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
             placeholder="e.g., col1 > 10 and col2 < 5"
             required
           />
         </div>
-        <div className="flex justify-between">
+        <div className="flex justify-between items-center gap-2">
           <button
             type="submit"
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md font-medium transition-colors duration-150"
+            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 text-sm rounded-md font-medium shadow-sm transition-colors duration-150"
             disabled={loading}
           >
             Submit
@@ -57,7 +58,7 @@ const AdvQueryFilterForm = ({ projectId, onClose }) => {
           <button
             type="button"
             onClick={onClose}
-            className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-md font-medium transition-colors duration-150"
+            className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-sm rounded-md font-medium shadow-sm transition-colors duration-150"
           >
             Cancel
           </button>
