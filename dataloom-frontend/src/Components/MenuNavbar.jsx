@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useForm } from "../hooks/useForm";
 import FilterForm from "./forms/FilterForm";
 import SortForm from "./forms/SortForm";
 import DropDuplicateForm from "./forms/DropDuplicateForm";
@@ -14,6 +15,7 @@ import InputDialog from "./common/InputDialog";
 import ConfirmDialog from "./common/ConfirmDialog";
 import Toast from "./common/Toast";
 import { saveProject, exportProject, getLogs, getCheckpoints, revertToCheckpoint } from "../api";
+import { FORM_TYPES } from "../constants/formTypes";
 import proptype from "prop-types";
 
 import {
@@ -33,17 +35,7 @@ import {
 } from "react-icons/lu";
 
 const MenuNavbar = ({ projectId, onTransform }) => {
-  const [showGroupByForm, setShowGroupByForm] = useState(false);
-  const [showFilterForm, setShowFilterForm] = useState(false);
-  const [showSortForm, setShowSortForm] = useState(false);
-  const [showDropDuplicateForm, setShowDropDuplicateForm] = useState(false);
-  const [showAdvQueryFilterForm, setShowAdvQueryFilterForm] = useState(false);
-  const [showPivotTableForm, setShowPivotTableForm] = useState(false);
-  const [showLogs, setShowLogs] = useState(false);
-  const [showCheckpoints, setShowCheckpoints] = useState(false);
-  const [showCastDataTypeForm, setShowCastDataTypeForm] = useState(false);
-  const [showTrimWhitespaceForm, setShowTrimWhitespaceForm] = useState(false);
-  const [showMeltForm, setShowMeltForm] = useState(false);
+  const { activeForm, openForm, closeForm, isActive } = useForm(null);
   const [logs, setLogs] = useState([]);
   const [checkpoints, setCheckpoints] = useState(null);
   const [isInputOpen, setIsInputOpen] = useState(false);
@@ -70,9 +62,9 @@ const MenuNavbar = ({ projectId, onTransform }) => {
   }, [projectId]);
 
   useEffect(() => {
-    if (showLogs) fetchLogs();
-    if (showCheckpoints) fetchCheckpoints();
-  }, [showLogs, showCheckpoints, fetchLogs, fetchCheckpoints]);
+    if (isActive(FORM_TYPES.logs)) fetchLogs();
+    if (isActive(FORM_TYPES.checkpoints)) fetchCheckpoints();
+  }, [activeForm, fetchLogs, fetchCheckpoints, isActive]);
 
   const handleSave = () => {
     setIsInputOpen(true);
@@ -122,62 +114,6 @@ const MenuNavbar = ({ projectId, onTransform }) => {
     });
   };
 
-  const [activeForm, setActiveForm] = useState(null);
-
-  const handleMenuClick = (formType) => {
-    setShowFilterForm(false);
-    setShowSortForm(false);
-    setShowDropDuplicateForm(false);
-    setShowAdvQueryFilterForm(false);
-    setShowPivotTableForm(false);
-    setShowCastDataTypeForm(false);
-    setShowTrimWhitespaceForm(false);
-    setShowMeltForm(false);
-    setShowLogs(false);
-    setShowCheckpoints(false);
-    setShowGroupByForm(false);
-
-    setActiveForm(formType);
-
-    switch (formType) {
-      case "FilterForm":
-        setShowFilterForm(true);
-        break;
-      case "SortForm":
-        setShowSortForm(true);
-        break;
-      case "DropDuplicateForm":
-        setShowDropDuplicateForm(true);
-        break;
-      case "AdvQueryFilterForm":
-        setShowAdvQueryFilterForm(true);
-        break;
-      case "PivotTableForm":
-        setShowPivotTableForm(true);
-        break;
-      case "CastDataTypeForm":
-        setShowCastDataTypeForm(true);
-        break;
-      case "TrimWhitespaceForm":
-        setShowTrimWhitespaceForm(true);
-        break;
-      case "MeltForm":
-        setShowMeltForm(true);
-        break;
-      case "Logs":
-        setShowLogs(true);
-        break;
-      case "Checkpoints":
-        setShowCheckpoints(true);
-        break;
-      case "GroupByForm":
-        setShowGroupByForm(true);
-        break;
-      default:
-        break;
-    }
-  };
-
   const [activeTab, setActiveTab] = useState("File");
 
   const tabs = {
@@ -195,14 +131,14 @@ const MenuNavbar = ({ projectId, onTransform }) => {
           {
             label: "Logs",
             icon: LuHistory,
-            formType: "Logs",
-            onClick: () => handleMenuClick("Logs"),
+            formType: FORM_TYPES.logs,
+            onClick: () => openForm(FORM_TYPES.logs),
           },
           {
             label: "Checkpoints",
             icon: LuBookmark,
-            formType: "Checkpoints",
-            onClick: () => handleMenuClick("Checkpoints"),
+            formType: FORM_TYPES.checkpoints,
+            onClick: () => openForm(FORM_TYPES.checkpoints),
           },
         ],
       },
@@ -214,38 +150,38 @@ const MenuNavbar = ({ projectId, onTransform }) => {
           {
             label: "Filter",
             icon: LuFilter,
-            formType: "FilterForm",
-            onClick: () => handleMenuClick("FilterForm"),
+            formType: FORM_TYPES.filter,
+            onClick: () => openForm(FORM_TYPES.filter),
           },
           {
             label: "Sort",
             icon: LuArrowUpDown,
-            formType: "SortForm",
-            onClick: () => handleMenuClick("SortForm"),
+            formType: FORM_TYPES.sort,
+            onClick: () => openForm(FORM_TYPES.sort),
           },
           {
             label: "Drop Dup",
             icon: LuCopyMinus,
-            formType: "DropDuplicateForm",
-            onClick: () => handleMenuClick("DropDuplicateForm"),
+            formType: FORM_TYPES.dropDuplicate,
+            onClick: () => openForm(FORM_TYPES.dropDuplicate),
           },
           {
             label: "GroupBy",
             icon: LuGroup,
-            formType: "GroupByForm",
-            onClick: () => handleMenuClick("GroupByForm"),
+            formType: FORM_TYPES.groupBy,
+            onClick: () => openForm(FORM_TYPES.groupBy),
           },
           {
             label: "Cast Type",
             icon: LuRefreshCw,
-            formType: "CastDataTypeForm",
-            onClick: () => handleMenuClick("CastDataTypeForm"),
+            formType: FORM_TYPES.castType,
+            onClick: () => openForm(FORM_TYPES.castType),
           },
           {
             label: "Trim Space",
             icon: LuScissors,
-            formType: "TrimWhitespaceForm",
-            onClick: () => handleMenuClick("TrimWhitespaceForm"),
+            formType: FORM_TYPES.trimWhitespace,
+            onClick: () => openForm(FORM_TYPES.trimWhitespace),
           },
         ],
       },
@@ -255,24 +191,52 @@ const MenuNavbar = ({ projectId, onTransform }) => {
           {
             label: "Adv Query",
             icon: LuCode,
-            formType: "AdvQueryFilterForm",
-            onClick: () => handleMenuClick("AdvQueryFilterForm"),
+            formType: FORM_TYPES.advQuery,
+            onClick: () => openForm(FORM_TYPES.advQuery),
           },
           {
             label: "Pivot Table",
             icon: LuTable2,
-            formType: "PivotTableForm",
-            onClick: () => handleMenuClick("PivotTableForm"),
+            formType: FORM_TYPES.pivotTable,
+            onClick: () => openForm(FORM_TYPES.pivotTable),
           },
           {
             label: "Melt (Unpivot)",
             icon: LuLayoutList,
-            onClick: () => handleMenuClick("MeltForm"),
+            formType: FORM_TYPES.melt,
+            onClick: () => openForm(FORM_TYPES.melt),
           },
         ],
       },
     ],
   };
+
+  const activeFormConfig = activeForm
+    ? {
+        [FORM_TYPES.filter]: { Component: FilterForm, props: { projectId } },
+        [FORM_TYPES.sort]: { Component: SortForm, props: { projectId } },
+        [FORM_TYPES.dropDuplicate]: {
+          Component: DropDuplicateForm,
+          props: { projectId, onTransform },
+        },
+        [FORM_TYPES.advQuery]: { Component: AdvQueryFilterForm, props: { projectId } },
+        [FORM_TYPES.pivotTable]: { Component: PivotTableForm, props: { projectId } },
+        [FORM_TYPES.melt]: { Component: MeltForm, props: { projectId } },
+        [FORM_TYPES.castType]: { Component: CastDataTypeForm, props: { projectId, onTransform } },
+        [FORM_TYPES.trimWhitespace]: {
+          Component: TrimWhitespaceForm,
+          props: { projectId, onTransform },
+        },
+        [FORM_TYPES.logs]: { Component: LogsPanel, props: { logs } },
+        [FORM_TYPES.checkpoints]: {
+          Component: CheckpointsPanel,
+          props: { checkpoints, onRevert: handleRevert },
+        },
+        [FORM_TYPES.groupBy]: { Component: GroupByForm, props: { projectId, onTransform } },
+      }[activeForm]
+    : null;
+
+  const ActiveFormComponent = activeFormConfig?.Component;
 
   return (
     <div className="bg-white border-b border-gray-200">
@@ -299,19 +263,19 @@ const MenuNavbar = ({ projectId, onTransform }) => {
             <div className="flex flex-col items-center">
               <div className="flex items-center gap-1 flex-1">
                 {section.items.map((item) => {
-                  const isActive = item.formType && activeForm === item.formType;
+                  const active = item.formType && isActive(item.formType);
                   return (
                     <button
                       key={item.label}
                       onClick={item.onClick}
                       className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-md ${
-                        isActive ? "bg-blue-50 text-blue-600" : "hover:bg-gray-100"
+                        active ? "bg-blue-50 text-blue-600" : "hover:bg-gray-100"
                       }`}
                     >
                       <item.icon
-                        className={`w-5 h-5 ${isActive ? "text-blue-600" : "text-gray-600"}`}
+                        className={`w-5 h-5 ${active ? "text-blue-600" : "text-gray-600"}`}
                       />
-                      <span className={`text-xs ${isActive ? "text-blue-600" : "text-gray-700"}`}>
+                      <span className={`text-xs ${active ? "text-blue-600" : "text-gray-700"}`}>
                         {item.label}
                       </span>
                     </button>
@@ -326,101 +290,8 @@ const MenuNavbar = ({ projectId, onTransform }) => {
         ))}
       </div>
 
-      {showFilterForm && (
-        <FilterForm
-          onClose={() => {
-            setShowFilterForm(false);
-            setActiveForm(null);
-          }}
-          projectId={projectId}
-        />
-      )}
-      {showSortForm && (
-        <SortForm
-          onClose={() => {
-            setShowSortForm(false);
-            setActiveForm(null);
-          }}
-          projectId={projectId}
-        />
-      )}
-      {showDropDuplicateForm && (
-        <DropDuplicateForm
-          projectId={projectId}
-          onClose={() => {
-            setShowDropDuplicateForm(false);
-            setActiveForm(null);
-          }}
-          onTransform={onTransform}
-        />
-      )}
-      {showAdvQueryFilterForm && (
-        <AdvQueryFilterForm
-          onClose={() => {
-            setShowAdvQueryFilterForm(false);
-            setActiveForm(null);
-          }}
-          projectId={projectId}
-        />
-      )}
-      {showPivotTableForm && (
-        <PivotTableForm
-          onClose={() => {
-            setShowPivotTableForm(false);
-            setActiveForm(null);
-          }}
-          projectId={projectId}
-        />
-      )}
-      {showMeltForm && <MeltForm onClose={() => setShowMeltForm(false)} projectId={projectId} />}
-      {showCastDataTypeForm && (
-        <CastDataTypeForm
-          projectId={projectId}
-          onClose={() => {
-            setShowCastDataTypeForm(false);
-            setActiveForm(null);
-          }}
-          onTransform={onTransform}
-        />
-      )}
-      {showTrimWhitespaceForm && (
-        <TrimWhitespaceForm
-          projectId={projectId}
-          onClose={() => {
-            setShowTrimWhitespaceForm(false);
-            setActiveForm(null);
-          }}
-          onTransform={onTransform}
-        />
-      )}
-      {showLogs && (
-        <LogsPanel
-          logs={logs}
-          onClose={() => {
-            setShowLogs(false);
-            setActiveForm(null);
-          }}
-        />
-      )}
-      {showCheckpoints && (
-        <CheckpointsPanel
-          checkpoints={checkpoints}
-          onClose={() => {
-            setShowCheckpoints(false);
-            setActiveForm(null);
-          }}
-          onRevert={handleRevert}
-        />
-      )}
-      {showGroupByForm && (
-        <GroupByForm
-          projectId={projectId}
-          onClose={() => {
-            setShowGroupByForm(false);
-            setActiveForm(null);
-          }}
-          onTransform={onTransform}
-        />
+      {ActiveFormComponent && (
+        <ActiveFormComponent onClose={closeForm} {...activeFormConfig.props} />
       )}
 
       <InputDialog
