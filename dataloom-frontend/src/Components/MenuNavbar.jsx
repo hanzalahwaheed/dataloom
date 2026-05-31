@@ -13,10 +13,10 @@ import LogsPanel from "./history/LogsPanel";
 import CheckpointsPanel from "./history/CheckpointsPanel";
 import InputDialog from "./common/InputDialog";
 import ConfirmDialog from "./common/ConfirmDialog";
+import ExportModal from "./ExportModal";
 import Toast from "./common/Toast";
 import {
   saveProject,
-  exportProject,
   getLogs,
   getCheckpoints,
   revertToCheckpoint,
@@ -58,6 +58,7 @@ const MenuNavbar = ({ projectId, onTransform }) => {
   const [showTrimWhitespaceForm, setShowTrimWhitespaceForm] = useState(false);
   const [showMeltForm, setShowMeltForm] = useState(false);
   const [showSampleRowsForm, setShowSampleRowsForm] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
   const [showStringReplaceForm, setShowStringReplaceForm] = useState(false);
   const [logs, setLogs] = useState([]);
   const [checkpoints, setCheckpoints] = useState(null);
@@ -65,7 +66,7 @@ const MenuNavbar = ({ projectId, onTransform }) => {
   const [confirmData, setConfirmData] = useState(null);
   const [toast, setToast] = useState(null);
 
-  const { updateData } = useProjectContext();
+  const { updateData, projectName } = useProjectContext();
 
   const fetchLogs = useCallback(async () => {
     try {
@@ -127,22 +128,6 @@ const MenuNavbar = ({ projectId, onTransform }) => {
       } else {
         setToast({ message: "Failed to undo transformation.", type: "error" });
       }
-    }
-  };
-
-  const handleExport = async () => {
-    try {
-      const { blob, filename } = await exportProject(projectId);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename || "export.csv";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    } catch {
-      setToast({ message: "Failed to export project.", type: "error" });
     }
   };
 
@@ -253,7 +238,7 @@ const MenuNavbar = ({ projectId, onTransform }) => {
         group: "Save",
         items: [
           { label: "Save", icon: LuSave, onClick: handleSave },
-          { label: "Export", icon: LuDownload, onClick: handleExport },
+          { label: "Export", icon: LuDownload, onClick: () => setShowExportModal(true) },
           { label: "Undo", icon: LuUndo2, onClick: handleUndo },
         ],
       },
@@ -524,6 +509,14 @@ const MenuNavbar = ({ projectId, onTransform }) => {
           onTransform={onTransform}
         />
       )}
+
+      <ExportModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        projectId={projectId}
+        defaultName={projectName}
+        onError={(message) => setToast({ message, type: "error" })}
+      />
 
       <InputDialog
         isOpen={isInputOpen}
