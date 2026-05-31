@@ -103,6 +103,45 @@ class TestExportNativeFormat:
         assert result["name"].tolist() == ["Alice", "Bob", "Charlie"]
 
 
+def _decode(content: bytes, ext: str) -> pd.DataFrame:
+    """Parse downloaded export bytes for the given target format."""
+    if ext == "csv":
+        return pd.read_csv(BytesIO(content))
+    if ext == "tsv":
+        return pd.read_csv(BytesIO(content), sep="\t")
+    if ext == "json":
+        return pd.read_json(BytesIO(content))
+    if ext == "xlsx":
+        return pd.read_excel(BytesIO(content))
+    if ext == "parquet":
+        return pd.read_parquet(BytesIO(content))
+    raise ValueError(ext)
+
+
+class TestExportConversionMatrix:
+    """Any supported source format must be exportable to any target format."""
+
+    @pytest.mark.parametrize("source_ext", [".csv", ".tsv", ".json", ".xlsx", ".parquet"])
+    @pytest.mark.parametrize("target", ["csv", "tsv", "json", "xlsx", "parquet"])
+    def test_convert(self, client, source_ext, target):
+        project_id = _upload(client, _encode(SAMPLE, source_ext), f"data{source_ext}").json()["project_id"]
+
+        response = client.get(f"/projects/{project_id}/export", params={"format": target})
+
+        assert response.status_code == 200, response.text
+        assert response.headers["content-disposition"].endswith(f'.{target}"')
+        result = _decode(response.content, target)
+        assert result["name"].tolist() == ["Alice", "Bob", "Charlie"]
+        assert result["age"].tolist() == [30, 25, 35]
+
+    def test_unsupported_target_format_is_400(self, client):
+        project_id = _upload(client, _encode(SAMPLE, ".csv"), "data.csv").json()["project_id"]
+
+        response = client.get(f"/projects/{project_id}/export", params={"format": "txt"})
+
+        assert response.status_code == 400
+
+
 # --- Broken / malformed inputs fail gracefully (no 500 crash) -------------
 
 
