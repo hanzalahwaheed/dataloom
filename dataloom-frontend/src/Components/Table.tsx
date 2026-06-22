@@ -133,7 +133,6 @@ const Table = ({ projectId, data: externalData, showColumnProfiles = false }: Ta
   // so profiles refresh after a row-count-changing transform.
   const { profiles, loading: profilesLoading } = useColumnProfiles(
     projectId,
-    ctxColumns,
     showColumnProfiles,
     totalRows,
   );
