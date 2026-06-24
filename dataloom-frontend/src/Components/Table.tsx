@@ -378,9 +378,7 @@ const Table = ({ projectId, data: externalData }: TableProps) => {
                       className={`h-6 px-0.5 py-0 border-r border-gray-200 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
                         isDropTarget ? "ring-2 ring-blue-400" : ""
                       } ${isSerialNumber ? "w-16 sticky left-0 z-10 bg-gray-50" : "bg-gray-50"}`}
-                      onContextMenu={(e) =>
-                        open(e as unknown as MouseEvent, { type: "column", columnIndex })
-                      }
+                      onContextMenu={(e) => open(e, { type: "column", columnIndex })}
                     >
                       <button
                         type="button"
@@ -437,11 +435,11 @@ const Table = ({ projectId, data: externalData }: TableProps) => {
                       className={`h-5 px-0.5 py-0 border-b border-r border-gray-200 text-left text-[10px] leading-none ${
                         isDropTarget ? "ring-2 ring-blue-400" : ""
                       } ${isSerialNumber ? "w-16 sticky left-0 z-10 bg-gray-50" : "bg-gray-50"}`}
-                      onContextMenu={(e) =>
-                        open(e as unknown as MouseEvent, { type: "column", columnIndex })
-                      }
+                      onContextMenu={(e) => open(e, { type: "column", columnIndex })}
                     >
                       {!isSerialNumber && dtypes[column] ? (
+                        // empty className strips DtypeBadge's default ml-1.5 so the
+                        // badge fills the dtype row flush; undefined would re-add it
                         <DtypeBadge dtype={dtypes[column]} className="" />
                       ) : null}
                     </th>
@@ -461,9 +459,7 @@ const Table = ({ projectId, data: externalData }: TableProps) => {
                           ? "w-16 sticky left-0 z-10 bg-gray-50 text-center font-medium text-gray-500"
                           : "text-gray-700"
                       }`}
-                      onContextMenu={(e) =>
-                        open(e as unknown as MouseEvent, { type: "row", rowIndex })
-                      }
+                      onContextMenu={(e) => open(e, { type: "row", rowIndex })}
                     >
                       {editingCell &&
                       editingCell.rowIndex === rowIndex &&
@@ -580,7 +576,6 @@ interface TablePaginationProps {
   onPageSizeChange: (size: number) => void;
 }
 
-// TablePagination Component
 export function TablePagination({
   totalRows,
   totalPages,
