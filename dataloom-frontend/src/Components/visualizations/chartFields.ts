@@ -4,8 +4,6 @@
  * submitted. Dtype labels are the backend's `map_dtype` output
  * (int/float/bool/datetime/str).
  */
-import type { ChartType } from "../../api/visualizations";
-
 export type Dtypes = Record<string, string>;
 
 export const isNumeric = (dtype: string | undefined): boolean =>
@@ -40,7 +38,7 @@ export function columnsFor(
 }
 
 /** Whether a chart type uses the aggregation control. */
-export const usesAgg = (chartType: ChartType): boolean => chartType === "bar";
+export const usesAgg = (chartType: string): boolean => chartType === "bar";
 
 /** Whether a chart type uses the bin-size control. */
-export const usesBins = (chartType: ChartType): boolean => chartType === "histogram";
+export const usesBins = (chartType: string): boolean => chartType === "histogram";

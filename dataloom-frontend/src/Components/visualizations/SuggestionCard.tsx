@@ -1,22 +1,14 @@
-import type { ChartSpec } from "../../api/visualizations";
-
 interface SuggestionCardProps {
-  spec: ChartSpec;
+  /** Short type chip, e.g. "Histogram" or "Heatmap". */
+  typeLabel: string;
+  /** Human title of the suggested chart. */
+  title: string;
   active: boolean;
   onSelect: () => void;
 }
 
-const TYPE_LABEL: Record<ChartSpec["chart_type"], string> = {
-  histogram: "Histogram",
-  bar: "Bar",
-  line: "Line",
-  area: "Area",
-  scatter: "Scatter",
-  pie: "Pie",
-};
-
-/** A clickable card for one auto-suggested chart. */
-export default function SuggestionCard({ spec, active, onSelect }: SuggestionCardProps) {
+/** A clickable card for one suggested visualization. */
+export default function SuggestionCard({ typeLabel, title, active, onSelect }: SuggestionCardProps) {
   return (
     <button
       type="button"
@@ -28,9 +20,9 @@ export default function SuggestionCard({ spec, active, onSelect }: SuggestionCar
       }`}
     >
       <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-gray-500">
-        {TYPE_LABEL[spec.chart_type]}
+        {typeLabel}
       </span>
-      <span className="text-sm font-medium text-gray-900">{spec.title}</span>
+      <span className="text-sm font-medium text-gray-900">{title}</span>
     </button>
   );
 }

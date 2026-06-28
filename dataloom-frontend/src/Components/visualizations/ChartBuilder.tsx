@@ -4,13 +4,19 @@ import ColumnSelect from "../common/ColumnSelect";
 import Select, { type SelectOption } from "../common/Select";
 import { columnsFor, usesAgg, usesBins, type Dtypes } from "./chartFields";
 
+// "heatmap" is a frontend-only builder option: correlation has its own data shape
+// and CSS renderer (CorrelationHeatmap), so it doesn't go through the chart endpoint.
+type BuilderType = ChartType | "heatmap";
+
 interface ChartBuilderProps {
   columns: string[];
   dtypes: Dtypes;
   onSubmit: (params: ChartParams) => void;
+  /** Invoked when the correlation-heatmap option is rendered. */
+  onSelectHeatmap: () => void;
 }
 
-const CHART_TYPES: SelectOption[] = [
+const BASE_TYPES: SelectOption[] = [
   { value: "histogram", label: "Histogram" },
   { value: "bar", label: "Bar" },
   { value: "line", label: "Line" },
@@ -38,8 +44,13 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
  * invalid configuration cannot be assembled or submitted. Built from the shared
  * Select / ColumnSelect components used across the transform forms.
  */
-export default function ChartBuilder({ columns, dtypes, onSubmit }: ChartBuilderProps) {
-  const [chartType, setChartType] = useState<ChartType>("histogram");
+export default function ChartBuilder({
+  columns,
+  dtypes,
+  onSubmit,
+  onSelectHeatmap,
+}: ChartBuilderProps) {
+  const [chartType, setChartType] = useState<BuilderType>("histogram");
   const [column, setColumn] = useState("");
   const [category, setCategory] = useState("");
   const [value, setValue] = useState("");
@@ -51,6 +62,15 @@ export default function ChartBuilder({ columns, dtypes, onSubmit }: ChartBuilder
 
   const numericCols = useMemo(() => columnsFor("value", columns, dtypes), [columns, dtypes]);
   const xCols = useMemo(() => columnsFor("x", columns, dtypes), [columns, dtypes]);
+
+  // Correlation needs two numeric columns; only offer it when that's possible.
+  const typeOptions = useMemo<SelectOption[]>(
+    () =>
+      numericCols.length >= 2
+        ? [...BASE_TYPES, { value: "heatmap", label: "Correlation heatmap" }]
+        : BASE_TYPES,
+    [numericCols.length],
+  );
 
   const params = useMemo<ChartParams | null>(() => {
     switch (chartType) {
@@ -79,8 +99,8 @@ export default function ChartBuilder({ columns, dtypes, onSubmit }: ChartBuilder
           <Select
             data-testid="chart-type-select"
             value={chartType}
-            onChange={(v) => setChartType(v as ChartType)}
-            options={CHART_TYPES}
+            onChange={(v) => setChartType(v as BuilderType)}
+            options={typeOptions}
           />
         </Field>
 
@@ -175,8 +195,11 @@ export default function ChartBuilder({ columns, dtypes, onSubmit }: ChartBuilder
 
         <button
           type="button"
-          onClick={() => params && onSubmit(params)}
-          disabled={!params}
+          onClick={() => {
+            if (chartType === "heatmap") onSelectHeatmap();
+            else if (params) onSubmit(params);
+          }}
+          disabled={chartType !== "heatmap" && !params}
           className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
         >
           Render

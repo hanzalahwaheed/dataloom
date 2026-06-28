@@ -12,8 +12,16 @@ vi.mock("../../../context/ProjectContext", () => ({
 
 function renderBuilder() {
   const onSubmit = vi.fn();
-  render(<ChartBuilder columns={columns} dtypes={dtypes} onSubmit={onSubmit} />);
-  return onSubmit;
+  const onSelectHeatmap = vi.fn();
+  render(
+    <ChartBuilder
+      columns={columns}
+      dtypes={dtypes}
+      onSubmit={onSubmit}
+      onSelectHeatmap={onSelectHeatmap}
+    />,
+  );
+  return { onSubmit, onSelectHeatmap };
 }
 
 const renderButton = () => screen.getByRole("button", { name: "Render" });
@@ -29,7 +37,7 @@ function pick(testid: string, name: RegExp | string) {
 
 describe("ChartBuilder", () => {
   it("disables Render until a valid configuration is chosen", () => {
-    const onSubmit = renderBuilder();
+    const { onSubmit } = renderBuilder();
     // Histogram is the default and starts with no column selected.
     expect(renderButton()).toBeDisabled();
 
@@ -69,7 +77,7 @@ describe("ChartBuilder", () => {
   });
 
   it("requires both axes for a scatter plot", () => {
-    const onSubmit = renderBuilder();
+    const { onSubmit } = renderBuilder();
     pick("chart-type-select", "Scatter");
 
     pick("x-select", /revenue/);
@@ -84,5 +92,18 @@ describe("ChartBuilder", () => {
       y: ["cost"],
       color: undefined,
     });
+  });
+
+  it("routes the correlation heatmap to its own callback with no field selectors", () => {
+    const { onSubmit, onSelectHeatmap } = renderBuilder();
+    pick("chart-type-select", "Correlation heatmap");
+
+    // No column fields for the heatmap, and Render is immediately available.
+    expect(screen.queryByTestId("x-select")).not.toBeInTheDocument();
+    expect(renderButton()).toBeEnabled();
+
+    fireEvent.click(renderButton());
+    expect(onSelectHeatmap).toHaveBeenCalledOnce();
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 });
