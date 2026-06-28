@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import FilterForm from "./forms/FilterForm";
 import SortForm from "./forms/SortForm";
 import DropDuplicateForm from "./forms/DropDuplicateForm";
@@ -12,6 +12,9 @@ import StringReplaceForm from "./forms/StringReplaceForm";
 import LogsPanel from "./history/LogsPanel";
 import CheckpointsPanel from "./history/CheckpointsPanel";
 import DatasetSummaryPanel from "./profiling/DatasetSummaryPanel";
+// Lazy-loaded so Recharts ships in its own chunk, off the main bundle, and only
+// downloads when a user opens the Charts panel.
+const ChartPanel = lazy(() => import("./visualizations/ChartPanel"));
 import useDatasetSummary from "../hooks/useDatasetSummary";
 import FillEmptyForm from "./forms/FillEmptyForm";
 import InputDialog from "./common/InputDialog";
@@ -47,6 +50,7 @@ import {
   LuEraser,
   LuLayoutDashboard,
   LuColumns3,
+  LuChartColumnBig,
 } from "react-icons/lu";
 import { useProjectContext } from "../context/ProjectContext";
 
@@ -67,6 +71,7 @@ const MenuNavbar = ({ projectId, columnProfilesActive, onToggleColumnProfiles })
   const [showStringReplaceForm, setShowStringReplaceForm] = useState(false);
   const [showFillEmptyForm, setShowFillEmptyForm] = useState(false);
   const [showDatasetSummary, setShowDatasetSummary] = useState(false);
+  const [showCharts, setShowCharts] = useState(false);
   const [logs, setLogs] = useState([]);
   const [checkpoints, setCheckpoints] = useState(null);
   const [isInputOpen, setIsInputOpen] = useState(false);
@@ -203,6 +208,7 @@ const MenuNavbar = ({ projectId, columnProfilesActive, onToggleColumnProfiles })
       setShowFillEmptyForm(false);
       setShowSampleRowsForm(false);
       setShowDatasetSummary(false);
+      setShowCharts(false);
       return;
     }
 
@@ -221,6 +227,7 @@ const MenuNavbar = ({ projectId, columnProfilesActive, onToggleColumnProfiles })
     setShowGroupByForm(false);
     setShowFillEmptyForm(false);
     setShowDatasetSummary(false);
+    setShowCharts(false);
 
     setActiveForm(formType);
 
@@ -269,6 +276,9 @@ const MenuNavbar = ({ projectId, columnProfilesActive, onToggleColumnProfiles })
         break;
       case "DatasetSummary":
         setShowDatasetSummary(true);
+        break;
+      case "Charts":
+        setShowCharts(true);
         break;
 
       default:
@@ -417,6 +427,12 @@ const MenuNavbar = ({ projectId, columnProfilesActive, onToggleColumnProfiles })
             icon: LuColumns3,
             active: columnProfilesActive,
             onClick: onToggleColumnProfiles,
+          },
+          {
+            label: "Charts",
+            icon: LuChartColumnBig,
+            formType: "Charts",
+            onClick: () => handleMenuClick("Charts"),
           },
         ],
       },
@@ -619,6 +635,21 @@ const MenuNavbar = ({ projectId, columnProfilesActive, onToggleColumnProfiles })
             setActiveForm(null);
           }}
         />
+      )}
+      {showCharts && (
+        <Suspense
+          fallback={
+            <div className="p-4 text-center text-sm text-gray-400">Loading charts…</div>
+          }
+        >
+          <ChartPanel
+            projectId={projectId}
+            onClose={() => {
+              setShowCharts(false);
+              setActiveForm(null);
+            }}
+          />
+        </Suspense>
       )}
 
       <ExportModal
